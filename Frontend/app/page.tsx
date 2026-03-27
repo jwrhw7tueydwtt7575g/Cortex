@@ -10,6 +10,7 @@ import { PrometheusTab } from '@/components/PrometheusTab';
 import { DashplotTab } from '@/components/DashplotTab';
 import { AutomateTab } from '@/components/AutomateTab';
 import { IntegrationsTab } from '@/components/IntegrationsTab';
+import { ReportsTab } from '@/components/ReportsTab';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('grafana');
@@ -25,6 +26,8 @@ export default function Dashboard() {
         return <DashplotTab />;
       case 'automate':
         return <AutomateTab />;
+      case 'reports':
+        return <ReportsTab />;
       case 'integrations':
         return <IntegrationsTab />;
       default:

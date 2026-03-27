@@ -1,10 +1,12 @@
 """
 Main ML Anomaly Detection Pipeline
-Orchestrates: Data Fetching -> Feature Extraction -> Model Training -> MLflow Logging -> Visualization
+Orchestrates: Continuous Data Fetching -> Feature Extraction -> Model Training
+Runs in continuous polling mode - fetches latest 6 chunks for ML every 30 seconds
 """
 
 import os
 import json
+import time
 from datetime import datetime
 import numpy as np
 from config import ISOLATION_FOREST_PARAMS
@@ -182,4 +184,27 @@ def run_anomaly_detection_pipeline():
 
 
 if __name__ == "__main__":
-    run_anomaly_detection_pipeline()
+    print(f"\n{'='*70}")
+    print(f"🚀 CONTINUOUS ML PIPELINE - STREAMING MODE")
+    print(f"{'='*70}")
+    print(f"📍 Mode: Continuous Polling")
+    print(f"📊 ML Update: Every 30 seconds (latest 6 chunks)")
+    print(f"🔮 Prophet: Every 60 seconds (all historical data)")
+    print(f"{'='*70}\n")
+    
+    run_count = 0
+    while True:
+        run_count += 1
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        print(f"\n{'='*70}")
+        print(f"▶️  RUN #{run_count} - {timestamp}")
+        print(f"{'='*70}\n")
+        
+        try:
+            run_anomaly_detection_pipeline()
+        except Exception as e:
+            print(f"❌ Error in pipeline run: {e}")
+            print(f"⏳ Retrying in 30 seconds...\n")
+        
+        print(f"\n⏳ Next run in 30 seconds... (Press Ctrl+C to stop)")
+        time.sleep(30)

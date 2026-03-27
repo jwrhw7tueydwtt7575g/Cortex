@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: log-generator-metrics
+  namespace: default
+  labels:
+    app: log-generator
+spec:
+  selector:
+    app: log-generator
+  ports:
+    - name: metrics
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: log-generator-monitor
+  namespace: monitoring
+  labels:
+    app: log-generator
+spec:
+  selector:
+    matchLabels:
+      app: log-generator
+  namespaceSelector:
+    matchNames:
+      - default
+  endpoints:
+    - port: metrics
+      interval: 30s
+      path: /metrics
+---
+# PodMonitor for general pod monitoring across all namespaces
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: pod-monitor-all
+  namespace: monitoring
+spec:
+  selector:
+    matchLabels: {}
+  namespaceSelector:
+    any: true
+  podMetricsEndpoints:
+    - port: metrics
+      interval: 30s
+    - port: http-metrics
+      interval: 30s

@@ -3,15 +3,16 @@
 import { useRef, useEffect } from 'react';
 import { useTheme } from 'next-themes';
 import { useMounted } from '@/hooks/use-mounted';
-import { Activity, TrendingUp, BarChart3, Zap, Cable } from 'lucide-react';
+import { Activity, TrendingUp, BarChart3, Zap, Cable, FileText } from 'lucide-react';
 
-export type TabType = 'grafana' | 'prometheus' | 'dashplot' | 'automate' | 'integrations';
+export type TabType = 'grafana' | 'prometheus' | 'dashplot' | 'automate' | 'reports' | 'integrations';
 
 const TABS: Array<{ id: TabType; label: string; icon: React.ReactNode; color: string }> = [
   { id: 'grafana', label: 'Grafana', icon: <Activity className="w-4 h-4" />, color: 'orange' },
   { id: 'prometheus', label: 'Prometheus', icon: <TrendingUp className="w-4 h-4" />, color: 'red' },
   { id: 'dashplot', label: 'Dashplot', icon: <BarChart3 className="w-4 h-4" />, color: 'green' },
   { id: 'automate', label: 'Automate', icon: <Zap className="w-4 h-4" />, color: 'purple' },
+  { id: 'reports', label: 'Reports', icon: <FileText className="w-4 h-4" />, color: 'purple' },
   { id: 'integrations', label: 'Integrations', icon: <Cable className="w-4 h-4" />, color: 'cyan' },
 ];
 

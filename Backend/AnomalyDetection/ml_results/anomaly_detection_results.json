@@ -1,5 +1,5 @@
 {
-  "timestamp": "2026-03-26T21:04:39.535924",
+  "timestamp": "2026-03-27T16:10:19.083725",
   "mlflow_run_id": "no_mlflow",
   "model_type": "IsolationForest",
   "parameters": {
@@ -39,19 +39,19 @@
   },
   "anomalies": [
     {
-      "chunk_id": "chunk_20260326_153409_225437",
-      "timestamp": "2026-03-26 15:34:09.225000",
-      "anomaly_score": -0.5780843651150896,
+      "chunk_id": "chunk_20260327_102049_824954",
+      "timestamp": "2026-03-27 10:20:49.824000",
+      "anomaly_score": -0.5654597798768666,
       "metrics": {
-        "avg_latency": 9261.0,
-        "max_latency": 9261.0,
+        "avg_latency": 80.75,
+        "max_latency": 149.0,
         "avg_cpu_usage": 0.0,
         "max_cpu_usage": 0.0,
-        "avg_memory_usage": 0.0,
-        "max_memory_usage": 0.0,
+        "avg_memory_usage": 44.5,
+        "max_memory_usage": 56.0,
         "avg_queue_depth": 0.0,
         "max_queue_depth": 0.0,
-        "timeout_events": 0,
+        "timeout_events": 2,
         "health_count": 0,
         "anomaly_count": 0,
         "service_count": 0,

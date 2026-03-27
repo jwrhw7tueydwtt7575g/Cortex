@@ -1,0 +1,37 @@
+{
+  "chunk_id": "69c65a01bd61003475bbc4d2",
+  "timestamp": "2026-03-27T16:20:02.941117",
+  "messages_count": 50,
+  "report": {
+    "root_causes": [
+      "Heap memory usage is consistently above 30%",
+      "CPU usage spikes above 80% threshold",
+      "Connection timeouts and errors to user-service and svc/payment",
+      "Permission denied errors while accessing /admin",
+      "Garbage collection overhead limit exceeded"
+    ],
+    "components_affected": [
+      "user-service",
+      "svc/payment",
+      "postgres",
+      "Heap memory",
+      "CPU"
+    ],
+    "prevention_steps": [
+      "Monitor and adjust heap memory allocation",
+      "Optimize CPU usage by improving application efficiency",
+      "Implement retry mechanisms for connection errors",
+      "Review and adjust permissions for accessing /admin",
+      "Adjust garbage collection settings"
+    ],
+    "immediate_actions": [
+      "Restart containers with high CPU usage",
+      "Implement load balancing to reduce connection timeouts",
+      "Increase heap memory allocation",
+      "Fix permission issues for accessing /admin"
+    ],
+    "risk_level": "High",
+    "fix_time": "2 hours"
+  },
+  "_id": "69c660da2cdd64f1659ed48f"
+}
