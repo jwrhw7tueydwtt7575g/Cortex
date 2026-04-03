@@ -1,0 +1,26 @@
+{
+  "chunk_id": "69c6ab2c082c8b00e65fcd1f",
+  "timestamp": "2026-03-27T21:37:47.253619",
+  "messages_count": 50,
+  "report": {
+    "root_causes": [
+      "Readiness probe failed",
+      "upstream reset before headers"
+    ],
+    "components_affected": [
+      "postgres",
+      "auth-svc"
+    ],
+    "prevention_steps": [
+      "Implement retries for failed probes",
+      "Check auth-svc for configuration issues"
+    ],
+    "immediate_actions": [
+      "Investigate readiness probe failures",
+      "Verify auth-svc connection"
+    ],
+    "risk_level": "High",
+    "fix_time": "1 hour"
+  },
+  "_id": "69c6ab53dc42270a45a4ddfc"
+}

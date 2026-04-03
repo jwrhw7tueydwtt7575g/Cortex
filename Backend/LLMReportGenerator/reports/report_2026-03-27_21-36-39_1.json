@@ -1,0 +1,34 @@
+{
+  "chunk_id": "69c65a01bd61003475bbc4d2",
+  "timestamp": "2026-03-27T21:36:41.261569",
+  "messages_count": 50,
+  "report": {
+    "root_causes": [
+      "Connection timeout to user-service:5432",
+      "CPU throttling at 93% - response latency=7536ms",
+      "Heap memory critical: 85%",
+      "Upstream connect error to svc/payment:8080"
+    ],
+    "components_affected": [
+      "user-service",
+      "payment-svc",
+      "postgres",
+      "CPU usage"
+    ],
+    "prevention_steps": [
+      "Implement circuit breakers to prevent cascading failures",
+      "Monitor and optimize CPU usage to prevent throttling",
+      "Increase heap memory allocation to prevent critical conditions",
+      "Verify and optimize database connections to prevent timeouts"
+    ],
+    "immediate_actions": [
+      "Verify the connection to user-service:5432",
+      "Analyze and optimize CPU usage to prevent throttling",
+      "Run garbage collection to reduce heap memory usage",
+      "Verify the connection to svc/payment:8080"
+    ],
+    "risk_level": "High",
+    "fix_time": "2 hours"
+  },
+  "_id": "69c6ab11dc42270a45a4ddf9"
+}

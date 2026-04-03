@@ -1,0 +1,27 @@
+{
+  "chunk_id": "69c6abaf167f7cda113aab45",
+  "timestamp": "2026-03-27T21:39:54.586832",
+  "messages_count": 8,
+  "report": {
+    "root_causes": [
+      "Insufficient permissions for listing secrets in the prod namespace",
+      "Container exceeding memory limit of 384Mi"
+    ],
+    "components_affected": [
+      "Kubernetes cluster",
+      "Database (postgres)"
+    ],
+    "prevention_steps": [
+      "Assign necessary permissions to users for accessing secrets",
+      "Configure resource limits and requests for containers",
+      "Monitor memory and CPU usage to prevent OOMKills"
+    ],
+    "immediate_actions": [
+      "Investigate and resolve permission issues",
+      "Check for and terminate any containers exceeding memory limits"
+    ],
+    "risk_level": "Medium",
+    "fix_time": "1 hour"
+  },
+  "_id": "69c6abd2dc42270a45a4de00"
+}

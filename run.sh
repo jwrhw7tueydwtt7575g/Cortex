@@ -2,10 +2,12 @@
 
 # ╔════════════════════════════════════════════════════════════════════════════╗
 # ║                                                                            ║
-# ║           🚀 TESSERACT26 - Complete Automated ML Pipeline                 ║
+# ║     🚀 TESSERACT26 - Complete ML + Automation Pipeline                    ║
 # ║                                                                            ║
 # ║  • Pod Logs Stream → Parse & Segregate → MongoDB                          ║
 # ║  • ML Model (Continuous 30-sec polling)                                   ║
+# ║  • LLM Report Generator (Prevention reports)                              ║
+# ║  • Ansible Automation (Auto-execute fixes)                                ║
 # ║  • Prophet Forecasting (All historical data)                              ║
 # ║  • Grafana + Prometheus Monitoring                                        ║
 # ║  • Dash Dashboard (Auto-refresh 30-sec)                                   ║
@@ -67,9 +69,54 @@ cleanup() {
     pkill -f "stream.*main.py" || true
     pkill -f "main.py.*AnomalyDetection" || true
     pkill -f "dash_dashboard.py" || true
+    pkill -f "llm.*api_server" || true
+    pkill -f "ansible.*api_server" || true
     pkill -f "port-forward" || true
     
     echo -e "\n${GREEN}✅ All services stopped${NC}\n"
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# PORT AVAILABILITY CHECK
+# ═══════════════════════════════════════════════════════════════════════════
+
+check_port_available() {
+    local port=$1
+    local name=$2
+    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+        print_error "Port $port ($name) already in use"
+        return 1
+    fi
+    return 0
+}
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SERVICE HEALTH CHECK
+# ═══════════════════════════════════════════════════════════════════════════
+
+wait_for_service() {
+    local port=$1
+    local name=$2
+    local max_attempts=15
+    local attempt=1
+    
+    echo -e "${BLUE}[$(date '+%H:%M:%S')]${NC} Waiting for $name (port $port)..."
+    
+    while [ $attempt -le $max_attempts ]; do
+        if curl -s http://localhost:$port/health >/dev/null 2>&1 || \
+           curl -s http://localhost:$port/api/health >/dev/null 2>&1 || \
+           curl -s http://localhost:$port/ >/dev/null 2>&1; then
+            print_success "$name is healthy"
+            return 0
+        fi
+        
+        printf "."
+        sleep 1
+        attempt=$((attempt + 1))
+    done
+    
+    print_error "$name failed to start or is not responding on port $port"
+    return 1
 }
 
 # Trap to handle Ctrl+C
@@ -79,7 +126,7 @@ trap cleanup EXIT INT TERM
 # MAIN EXECUTION
 # ═══════════════════════════════════════════════════════════════════════════
 
-print_header "🚀 TESSERACT26 - Complete ML Pipeline Automation"
+print_header "🚀 TESSERACT26 - Complete ML + Automation Pipeline"
 
 # 1️⃣ CHECK MINIKUBE
 print_step "Checking Minikube..."
@@ -127,6 +174,48 @@ echo "$DASH_PID" >> "$PID_FILE"
 sleep 2
 print_success "Dash Dashboard Started (PID: $DASH_PID)"
 
+# 5️⃣.1 START LLM REPORT GENERATOR API
+print_step "Starting LLM Report Generator API (port 5000)..."
+cd "$PROJECT_ROOT/Backend/LLMReportGenerator"
+# Install dependencies if not already installed
+if ! python3 -c "import flask" 2>/dev/null; then
+    print_info "Installing LLM Report Generator dependencies..."
+    pip install -r requirements.txt > /dev/null 2>&1 || print_error "Failed to install LLM dependencies"
+fi
+nohup python3 api_server.py > llm_reports_api.log 2>&1 &
+LLM_PID=$!
+echo "$LLM_PID" >> "$PID_FILE"
+sleep 3
+if wait_for_service 5000 "LLM Report Generator API"; then
+    print_success "LLM Report Generator API Started (PID: $LLM_PID)"
+else
+    print_error "LLM Report Generator API failed to start - check llm_reports_api.log"
+    tail -20 llm_reports_api.log
+    exit 1
+fi
+
+# 5️⃣.2 START ANSIBLE AUTOMATION SERVICE
+print_step "Starting Ansible Automation Service (port 5001)..."
+cd "$PROJECT_ROOT/Backend/AnsibleAutomation"
+# Install dependencies if not already installed
+if ! python3 -c "import flask" 2>/dev/null; then
+    print_info "Installing Ansible Automation dependencies..."
+    pip install -r requirements.txt > /dev/null 2>&1 || print_error "Failed to install Automation dependencies"
+fi
+# Create playbooks directory
+mkdir -p playbooks results_cache
+nohup python3 api_server.py > automation_api.log 2>&1 &
+AUTOMATION_PID=$!
+echo "$AUTOMATION_PID" >> "$PID_FILE"
+sleep 3
+if wait_for_service 5001 "Ansible Automation Service"; then
+    print_success "Ansible Automation Service Started (PID: $AUTOMATION_PID)"
+else
+    print_error "Ansible Automation Service failed to start - check automation_api.log"
+    tail -20 automation_api.log
+    exit 1
+fi
+
 # 6️⃣ VERIFY MONITORING STACK
 print_step "Verifying Prometheus & Grafana..."
 
@@ -159,51 +248,81 @@ fi
 # FINAL SUMMARY
 # ═══════════════════════════════════════════════════════════════════════════
 
-print_header "✨ ALL SERVICES RUNNING"
+print_header "✨ ALL SERVICES RUNNING - FULL PIPELINE ACTIVE"
 
-echo -e "${CYAN}📊 DASHBOARDS:${NC}"
-echo -e "   ${GREEN}•${NC} Dash Dashboard:    ${BLUE}http://localhost:8050${NC}"
-echo -e "   ${GREEN}•${NC} Grafana:           ${BLUE}http://localhost:4000${NC} (admin/admin123)"
-echo -e "   ${GREEN}•${NC} Prometheus:        ${BLUE}http://localhost:9090${NC}"
+echo -e "${CYAN}📊 DASHBOARDS & APIS:${NC}"
+echo -e "   ${GREEN}•${NC} Dash Dashboard:         ${BLUE}http://localhost:8050${NC}"
+echo -e "   ${GREEN}•${NC} Grafana:                ${BLUE}http://localhost:4000${NC} (admin/admin123)"
+echo -e "   ${GREEN}•${NC} Prometheus:             ${BLUE}http://localhost:9090${NC}"
+echo -e "   ${GREEN}•${NC} LLM Report Generator:   ${BLUE}http://localhost:5000${NC}"
+echo -e "   ${GREEN}•${NC} Ansible Automation:     ${BLUE}http://localhost:5001${NC}"
 
-echo -e "\n${CYAN}📦 DATA FLOW:${NC}"
-echo -e "   ${GREEN}Pod: $POD_NAME${NC}"
-echo -e "   ├─ Logs: 500+/min"
-echo -e "   ↓"
-echo -e "   ${GREEN}Stream Parser${NC} (PID: $STREAM_PID)"
-echo -e "   ├─ Chunks: 50-log batches"
-echo -e "   ├─ Categorizes: HEALTH/ANOMALY/SERVICE/SECURITY"
-echo -e "   ↓"
-echo -e "   ${GREEN}MongoDB${NC} (Cloud Storage)"
-echo -e "   ├─ Stores all chunks"
-echo -e "   ↓"
-echo -e "   ${GREEN}ML Pipeline${NC} (PID: $ML_PID)"
-echo -e "   ├─ Fetches: Latest 6 chunks every 30 seconds"
-echo -e "   ├─ Model: Isolation Forest (contamination=0.1)"
-echo -e "   ├─ Features: 16 ML features"
-echo -e "   ├─ Saves: anomaly_detection_results.json"
-echo -e "   ↓"
-echo -e "   ${GREEN}Prophet Forecaster${NC}"
-echo -e "   ├─ Uses: ALL historical data from DB"
-echo -e "   ├─ Forecasts: 4 key metrics (latency, CPU, memory, queue_depth)"
-echo -e "   ├─ Confidence: 95% intervals"
-echo -e "   ↓"
-echo -e "   ${GREEN}Dash Dashboard${NC} (PID: $DASH_PID)"
-echo -e "   ├─ Auto-refresh: Every 30 seconds"
-echo -e "   ├─ Shows: Anomalies, forecasts, trends"
+echo -e "\n${CYAN}📦 COMPLETE DATA FLOW:${NC}"
+echo -e "   ${GREEN}1️⃣ Pod: $POD_NAME${NC}"
+echo -e "      └─ Generates: 500+/min logs"
+echo -e ""
+echo -e "   ${GREEN}2️⃣ Stream Parser${NC} (PID: $STREAM_PID)"
+echo -e "      └─ Collects logs into 50-log chunks"
+echo -e "      └─ Categorizes: HEALTH/ANOMALY/SERVICE/SECURITY"
+echo -e ""
+echo -e "   ${GREEN}3️⃣ MongoDB${NC}"
+echo -e "      └─ Stores all log chunks"
+echo -e ""
+echo -e "   ${GREEN}4️⃣ ML Pipeline${NC} (PID: $ML_PID)"
+echo -e "      └─ Polls every 30 seconds"
+echo -e "      └─ Isolation Forest model (16 features)"
+echo -e "      └─ Detects anomalies"
+echo -e ""
+echo -e "   ${GREEN}5️⃣ LLM Report Generator${NC} (PID: $LLM_PID)"
+echo -e "      └─ Takes anomalies as input"
+echo -e "      └─ Generates prevention reports (http://5000)"
+echo -e "      └─ Stores in MongoDB"
+echo -e ""
+echo -e "   ${GREEN}6️⃣ Frontend Dashboard${NC}"
+echo -e "      └─ Displays top 5 reports"
+echo -e "      └─ View & Automate buttons"
+echo -e ""
+echo -e "   ${GREEN}7️⃣ Ansible Automation${NC} (PID: $AUTOMATION_PID)"
+echo -e "      └─ Receives report + logs (http://5001)"
+echo -e "      └─ Generates Ansible playbook (LLM)"
+echo -e "      └─ Executes playbook automatically"
+echo -e "      └─ Tracks results in MongoDB"
+echo -e ""
+echo -e "   ${GREEN}8️⃣ Dash Dashboard${NC} (PID: $DASH_PID)"
+echo -e "      └─ Auto-refresh every 30 seconds"
+echo -e "      └─ Shows anomalies & forecasts"
+echo -e ""
+echo -e "   ${GREEN}9️⃣ Grafana + Prometheus${NC}"
+echo -e "      └─ Real-time metrics monitoring"
+echo -e "      └─ Kubernetes resource tracking"
 
 echo -e "\n${CYAN}🔄 CONTINUOUS OPERATIONS:${NC}"
 echo -e "   ${GREEN}•${NC} Stream Parser: Continuously reading pod logs"
 echo -e "   ${GREEN}•${NC} MongoDB: Storing chunks in real-time"
 echo -e "   ${GREEN}•${NC} ML Pipeline: Polling DB every 30 seconds"
-echo -e "   ${GREEN}•${NC} Prophet: Forecasting on full history"
+echo -e "   ${GREEN}•${NC} LLM Reports: Processing anomalies to generate prevention reports"
+echo -e "   ${GREEN}•${NC} Ansible Automation: Ready to execute remediation playbooks"
 echo -e "   ${GREEN}•${NC} Dashboard: Refreshing every 30 seconds"
 echo -e "   ${GREEN}•${NC} Grafana: Monitoring Kubernetes metrics"
 
-echo -e "\n${CYAN}📝 LOGS:${NC}"
-echo -e "   ${GREEN}•${NC} Stream Parser: $PROJECT_ROOT/Backend/log-parse-segregator/stream_parser.log"
+echo -e "\n${CYAN}📝 LOG FILES:${NC}"
+echo -e "   ${GREEN}•${NC} Stream Parser:  $PROJECT_ROOT/Backend/log-parse-segregator/stream_parser.log"
 echo -e "   ${GREEN}•${NC} ML Pipeline:    $PROJECT_ROOT/Backend/AnomalyDetection/ml_pipeline.log"
+echo -e "   ${GREEN}•${NC} LLM Reports:    $PROJECT_ROOT/Backend/LLMReportGenerator/llm_reports_api.log"
+echo -e "   ${GREEN}•${NC} Automation:     $PROJECT_ROOT/Backend/AnsibleAutomation/automation_api.log"
 echo -e "   ${GREEN}•${NC} Dashboard:      $PROJECT_ROOT/Backend/AnomalyDetection/dash_server.log"
+echo -e "   ${GREEN}•${NC} Playbooks:      $PROJECT_ROOT/Backend/AnsibleAutomation/playbooks/"
+
+echo -e "\n${CYAN}🧪 TEST COMMANDS:${NC}"
+echo -e "   ${GREEN}Check ML Anomalies:${NC}"
+echo -e "      curl -s http://localhost:5000/api/reports/top5 | jq ."
+echo -e "   ${GREEN}Check Automation Status:${NC}"
+echo -e "      curl -s http://localhost:5001/api/automation/health | jq ."
+echo -e "   ${GREEN}View Dashboard:${NC}"
+echo -e "      open http://localhost:8050"
+echo -e "   ${GREEN}Monitor Service Logs:${NC}"
+echo -e "      tail -f $PROJECT_ROOT/Backend/LLMReportGenerator/llm_reports_api.log"
+echo -e "      tail -f $PROJECT_ROOT/Backend/AnsibleAutomation/automation_api.log"
 
 echo -e "\n${CYAN}🛑 TO STOP ALL SERVICES:${NC}"
 echo -e "   ${YELLOW}Press Ctrl+C${NC} in this terminal"
@@ -229,6 +348,27 @@ while true; do
         ML_PID=$!
     fi
     
+    if ! ps -p "$LLM_PID" > /dev/null 2>&1; then
+        print_error "LLM Report Generator crashed! Restarting..."
+        cd "$PROJECT_ROOT/Backend/LLMReportGenerator"
+        if ! python3 -c "import flask" 2>/dev/null; then
+            pip install -r requirements.txt > /dev/null 2>&1
+        fi
+        nohup python3 api_server.py > llm_reports_api.log 2>&1 &
+        LLM_PID=$!
+    fi
+    
+    if ! ps -p "$AUTOMATION_PID" > /dev/null 2>&1; then
+        print_error "Ansible Automation crashed! Restarting..."
+        cd "$PROJECT_ROOT/Backend/AnsibleAutomation"
+        if ! python3 -c "import flask" 2>/dev/null; then
+            pip install -r requirements.txt > /dev/null 2>&1
+        fi
+        mkdir -p playbooks
+        nohup python3 api_server.py > automation_api.log 2>&1 &
+        AUTOMATION_PID=$!
+    fi
+    
     if ! ps -p "$DASH_PID" > /dev/null 2>&1; then
         print_error "Dash Dashboard crashed! Restarting..."
         cd "$PROJECT_ROOT/Backend/AnomalyDetection"
@@ -236,3 +376,10 @@ while true; do
         DASH_PID=$!
     fi
 done
+# ➜  Tesseract26 git:(main) ✗ cd /home/vivek/Desktop/Ai-Agent/Tesseract26/Backend/LLMReportGenerator && python3 api_server.py > llm_reports.log 2>&1 &
+# echo $! > /tmp/llm_server.pid
+# sleep 2
+# ps aux | grep api_server | grep -v grep
+# [1] 12080
+# vivek      12080 12.0  0.3 503088 49104 pts/20   SNl  23:52   0:00 python3 api_server.py
+# ➜  LLMReportGenerator git:(main) ✗ 

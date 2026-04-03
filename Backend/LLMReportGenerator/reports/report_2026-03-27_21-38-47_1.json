@@ -1,0 +1,30 @@
+{
+  "chunk_id": "69c6ab72d17b8f55be51e6a6",
+  "timestamp": "2026-03-27T21:38:49.645067",
+  "messages_count": 50,
+  "report": {
+    "root_causes": [
+      "connection refused while dialing upstream order-svc",
+      "upstream connect error to svc/payment:9090",
+      "OOMKill - container exceeded 768Mi"
+    ],
+    "components_affected": [
+      "order-svc",
+      "payment-svc",
+      "user-svc"
+    ],
+    "prevention_steps": [
+      "ensure proper networking between pods",
+      "verify service configurations",
+      "implement request queue limits"
+    ],
+    "immediate_actions": [
+      "investigate and resolve connection issues",
+      "check service health and restart if necessary",
+      "reduce memory usage or increase container limits"
+    ],
+    "risk_level": "High",
+    "fix_time": "1-2 hours"
+  },
+  "_id": "69c6ab91dc42270a45a4ddfd"
+}

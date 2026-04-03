@@ -1,0 +1,31 @@
+{
+  "chunk_id": "69c65a01bd61003475bbc4d3",
+  "timestamp": "2026-03-27T21:36:42.281768",
+  "messages_count": 31,
+  "report": {
+    "root_causes": [
+      "connection timeout",
+      "out of memory",
+      "permission denied"
+    ],
+    "components_affected": [
+      "user-service",
+      "billing-svc",
+      "inventory-svc",
+      "postgres"
+    ],
+    "prevention_steps": [
+      "increase connection timeout",
+      "optimize memory usage",
+      "review RBAC permissions"
+    ],
+    "immediate_actions": [
+      "restart failed containers",
+      "investigate permission denied errors",
+      "check database query performance"
+    ],
+    "risk_level": "High",
+    "fix_time": "2 hours"
+  },
+  "_id": "69c6ab12dc42270a45a4ddfa"
+}

@@ -19,7 +19,7 @@ app = Flask(__name__)
 CORS(app)
 
 # MongoDB connection
-MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://vivekchaudhari3718:vivekchaudhari3718@cluster1.9qlun5j.mongodb.net/')
+MONGODB_URI = os.getenv('MONGODB_URI', 'mongodb+srv://XXXXXX:XXXXXX@XXXXXX.mongodb.net/')
 MONGODB_DB = os.getenv('MONGODB_DB', 'k8s_logs')
 MONGODB_COLLECTION = os.getenv('MONGODB_COLLECTION', 'reportgenerated')
 

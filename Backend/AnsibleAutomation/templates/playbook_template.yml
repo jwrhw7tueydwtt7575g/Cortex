@@ -1,0 +1,40 @@
+---
+- name: Fix deployment readinessProbe
+  hosts: localhost
+  gather_facts: no
+  tasks:
+  - name: Patch deployment with corrected readinessProbe
+    kubernetes.core.k8s:
+      api_version: apps/v1
+      kind: Deployment
+      name: DEPLOYMENT_NAME_REPLACE
+      namespace: default
+      definition:
+        spec:
+          template:
+            spec:
+              containers:
+              - name: DEPLOYMENT_NAME_REPLACE
+                readinessProbe:
+                  httpGet:
+                    path: /health
+                    port: 8080
+                  initialDelaySeconds: 10
+                  periodSeconds: 5
+                  timeoutSeconds: 3
+                  failureThreshold: 3
+
+  - name: Wait for deployment to update
+    kubernetes.core.k8s_info:
+      api_version: apps/v1
+      kind: Deployment
+      name: DEPLOYMENT_NAME_REPLACE
+      namespace: default
+    register: deployment_result
+    retries: 20
+    delay: 2
+
+  - name: Display deployment status
+    debug:
+      msg: "Deployment DEPLOYMENT_NAME_REPLACE patched and updated successfully"
+

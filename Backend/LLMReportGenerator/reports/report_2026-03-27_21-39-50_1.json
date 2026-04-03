@@ -1,0 +1,33 @@
+{
+  "chunk_id": "69c6abaf167f7cda113aab44",
+  "timestamp": "2026-03-27T21:39:53.423036",
+  "messages_count": 50,
+  "report": {
+    "root_causes": [
+      "Insufficient permissions",
+      "Connection refused",
+      "CPU throttling",
+      "Container unhealthy"
+    ],
+    "components_affected": [
+      "order-svc",
+      "user-svc",
+      "payment-svc"
+    ],
+    "prevention_steps": [
+      "Implement RBAC and proper permissions",
+      "Increase container resources",
+      "Optimize database queries",
+      "Monitor and adjust service timeouts"
+    ],
+    "immediate_actions": [
+      "Restart failed containers",
+      "Check and resolve connection issues",
+      "Verify and adjust resource allocations",
+      "Investigate and address security incidents"
+    ],
+    "risk_level": "High",
+    "fix_time": "2 hours"
+  },
+  "_id": "69c6abd1dc42270a45a4ddff"
+}

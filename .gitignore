@@ -46,3 +46,44 @@ turbo.json
 
 # pnpm
 pnpm-lock.yaml
+# ML Models
+ml_results/
+*.pkl
+*.joblib
+*.h5
+
+# MongoDB
+.mongo_history
+
+# Ansible Playbooks (generated)
+Backend/AnsibleAutomation/playbooks/*.yml
+Backend/AnsibleAutomation/results_cache/
+Backend/AnsibleAutomation/playbooks/*.log
+
+# Python Cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# PIDs & Service Files
+.service_pids
+.pids.txt
+.pipeline_pids
+*.pid
+
+# Temporary files
+*.tmp
+*.temp
+dashboard.log
+ml_pipeline.log
+stream_parser.log
+llm_reports.log
+llm_reports_api.log
+automation_api.log
+
+# Sensitive data
+**/.env.local
+**/config.secret.json
+**/credentials.json
+**/secrets/**

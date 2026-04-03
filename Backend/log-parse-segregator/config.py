@@ -2,9 +2,11 @@
 Log categorization configuration with regex patterns
 """
 
+import os
+
 # MongoDB Configuration
-MONGODB_URI = "mongodb+srv://vivekchaudhari3718:vivekchaudhari3718@cluster1.9qlun5j.mongodb.net/"
-MONGODB_DB = "k8s_logs"
+MONGODB_URI = os.getenv("MONGODB_URI", "mongodb+srv://XXXXXX:XXXXXX@XXXXXX.mongodb.net/")
+MONGODB_DB = os.getenv("MONGODB_DB", "k8s_logs")
 MONGODB_COLLECTION = "log_streams"
 
 # Log Categories Configuration - Production Grade Regex Patterns
